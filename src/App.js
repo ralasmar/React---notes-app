@@ -21,9 +21,9 @@ export default function App() {
     React.useEffect(() => {
       //connect to localStorage api
       localStorage.setItem("notes", JSON.stringify(notes))
+      //make the note label be the first text in the note
+      console.log(notes[0].body.split("\n"))
     }, [notes])
-
-
 
     
     function createNewNote() {
@@ -36,11 +36,36 @@ export default function App() {
     }
     
     function updateNote(text) {
-        setNotes(oldNotes => oldNotes.map(oldNote => {
-            return oldNote.id === currentNoteId
-                ? { ...oldNote, body: text }
-                : oldNote
-        }))
+      //arranging most recently modified note to be at top
+        setNotes(oldNotes => {
+          //create a new empty array
+          const newArray = []
+          //loop over original array
+          for(let i=0; i< oldNotes.length; i++){
+            const oldNote = oldNotes[i]
+            //if the id matches put the updated note at beg of array
+            if(oldNote.id === currentNoteId){
+              newArray.unshift({...oldNote, body: text})
+            } else {
+              newArray.push(oldNote)
+            }
+          }
+          return newArray
+        })
+        //this does not rearrange the notes properly
+      //   setNotes(oldNotes => oldNotes.map(oldNote => {
+      //     return oldNote.id === currentNoteId
+      //         ? { ...oldNote, body: text }
+      //         : oldNote
+      // }))
+    }
+
+    function deleteNote(event, noteId){
+      //when the trash icon handles click event, stop propagating that event to the parent div (sidebar)
+      event.stopPropagation()
+      //need access to old array so using cb function as parameter
+      //filter to check if the noteId is equal to the deleted one and not include it in the array
+      setNotes(oldNotes => oldNotes.filter(note => note.id !== noteId))
     }
     
     function findCurrentNote() {
@@ -64,6 +89,7 @@ export default function App() {
                     currentNote={findCurrentNote()}
                     setCurrentNoteId={setCurrentNoteId}
                     newNote={createNewNote}
+                    deleteNote={deleteNote}
                 />
                 {
                     currentNoteId && 
